@@ -11,4 +11,4 @@ Aplicação web desenvolvida para controle financeiro pessoal, permitindo o cada
 ## ⚙️ Como Executar o Projeto Localmente
 1. Certifique-se de ter um ambiente PHP configurado (como WampServer, XAMPP ou servidor embutido do PHP).
 2. Clone este repositório ou baixe os arquivos para a pasta raiz do seu servidor (ex: `www/` no WampServer).
-3. Acesse pelo navegador: `http://localhost/sua-pasta-do-projeto/`
+3. Acesse pelo navegador: `http://localhost/projeto-gestao-financeira/`
