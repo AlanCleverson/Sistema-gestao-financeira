@@ -25,7 +25,7 @@ if (isset($_GET['excluir'])) {
     exit;
 }
 
-// Busca os dados
+// Busca os dados (Corrigido o SELECT aqui)
 $stmt = $pdo->query("SELECT * FROM transacoes ORDER BY id DESC");
 $transacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -140,4 +140,4 @@ $saldoFinal = $totalReceitas - $totalDespesas;
 </div>
 
 </body>
-</html>
+</html> 
