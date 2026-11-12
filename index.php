@@ -127,6 +127,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['acao_sair'])) {
+        // Limpar totalmente a sessão ao sair
+        $_SESSION = array();
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
         header("Location: index.php");
         exit;
@@ -219,7 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$usuarioLogado = isset($_SESSION['usuario_apelido']);
+// Verificação rigorosa do login: Se a sessão não tiver apelido definido, obrigatoriamente força o estado deslogado
+$usuarioLogado = isset($_SESSION['usuario_apelido']) && !empty($_SESSION['usuario_apelido']);
 if ($usuarioLogado && isset($_SESSION['aviso_divertido'])) {
     $avisoTransacao = $_SESSION['aviso_divertido'];
     unset($_SESSION['aviso_divertido']);
@@ -273,7 +283,19 @@ $transacoes = [];
 
 if ($usuarioLogado) {
     try {
+        // Validação adicional: garante que o usuário realmente existe no banco SQLite
         $apelidoAtual = $_SESSION['usuario_apelido'];
+        $stmtUserCheck = $pdo->prepare("SELECT nome FROM usuarios WHERE apelido = ?");
+        $stmtUserCheck->execute([$apelidoAtual]);
+        $userData = $stmtUserCheck->fetch(PDO::FETCH_ASSOC);
+
+        if (!$userData) {
+            // Se o usuário foi apagado do banco mas a sessão continuava presa, desloga
+            session_destroy();
+            header("Location: index.php");
+            exit;
+        }
+        $_SESSION['usuario_nome'] = $userData['nome'];
 
         criarCategoriasPadrao($pdo, $apelidoAtual);
 
@@ -610,7 +632,7 @@ function formatarBRL($valor) {
                     <input type="text" name="nome" placeholder="Ex: Maria" required>
                 </div>
                 <div class="form-group">
-                    <label>Escolha um Apelido Único (será seu ID) usuário</label>
+                    <label>Apelido Único (será seu ID usuário)</label>
                     <input type="text" name="apelido" placeholder="Ex: maria_silva" required>
                 </div>
                 <button type="submit" class="btn-submit">Criar Minha Conta</button>
@@ -622,7 +644,7 @@ function formatarBRL($valor) {
                 <input type="hidden" name="acao_entrar" value="1">
                 <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-align: left;">🔑 Já tem conta? Entre aqui:</div>
                 <div class="form-group">
-                    <label>Seu Apelido Cadastrado</label>
+                    <label>Seu ID de Usuário (Apelido)</label>
                     <input type="text" name="apelido_login" placeholder="Ex: ana123" required>
                 </div>
                 <button type="submit" class="btn-submit" style="background: var(--accent-blue);">Entrar na Minha Conta</button>
@@ -1057,8 +1079,7 @@ function formatarBRL($valor) {
                     }
                 }
             };
-        } else:
-        if (tipoGrafico === 'doughnut') {
+        } else if (tipoGrafico === 'doughnut') {
             config = {
                 type: 'doughnut',
                 data: {
