@@ -1,0 +1,17 @@
+# Usa uma imagem oficial do PHP com Apache embutido
+FROM php:8.2-apache
+
+# Instala extensões essenciais que o SQLite e o PHP costumam precisar
+RUN docker-php-ext-install pdo pdo_sqlite
+
+# Copia todos os arquivos da sua pasta local para dentro da pasta pública do servidor web do container
+COPY . /var/www/html/
+
+# Ajusta as permissões da pasta para que o SQLite consiga ler e gravar o banco.db sem erros
+RUN chown -R www-data:www-data /var/www/html
+
+# O Render define a porta automaticamente através da variável $PORT, então ajustamos o Apache para escutar nela
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
+# Expõe a porta dinâmica
+EXPOSE ${PORT}
