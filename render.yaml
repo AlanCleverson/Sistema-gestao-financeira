@@ -1,5 +1,0 @@
-services:
-  - type: web
-    name: sistema-gestao-financeira
-    env: docker
-    plan: free
